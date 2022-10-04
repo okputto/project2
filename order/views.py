@@ -5,6 +5,7 @@ from rest_framework.parsers import JSONParser
 
 from order.models import Shop, Menu, Order, Orderfood
 from order.serializers import ShopSerializer, MenuSerializer
+from user.models import User
 
 @csrf_exempt
 def shop(request):
@@ -12,9 +13,15 @@ def shop(request):
         # shop = Shop.objects.all()
         # serializer = ShopSerializer(shop, many=True)
         # return JsonResponse(serializer.data, safe=False)
-        shop = Shop.objects.all()
-        return render(request, 'order/shop_list.html', {'shop_list':shop})
-
+        try:
+            if User.objects.all().get(id=request.session['user_id']).user_type==0:
+                shop = Shop.objects.all()
+                return render(request, 'order/shop_list.html', {'shop_list':shop})
+            else:
+                return render(request, "order/fail.html")
+        except:
+            return render(request, "order/fail.html")
+            
     elif request.method == 'POST':
         data = JSONParser().parse(request)
         serializer = ShopSerializer(data=data)
